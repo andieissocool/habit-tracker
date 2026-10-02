@@ -15,6 +15,10 @@ create table marks (
   primary key (habit_id, day)
 );
 
+-- Zugriff über die Data API nur für angemeldete Nutzer
+-- (nötig, wenn "Automatically expose new tables" deaktiviert ist).
+grant select, insert, update, delete on habits, marks to authenticated;
+
 -- Row Level Security: jeder sieht und ändert nur seine eigenen Daten.
 alter table habits enable row level security;
 alter table marks enable row level security;

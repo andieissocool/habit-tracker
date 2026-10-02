@@ -260,7 +260,7 @@
   const view = { year: today.getFullYear(), month: today.getMonth() };
 
   let db = null;
-  let userId = null;
+  let userId;               // undefined = noch unbekannt, null = abgemeldet
   let habits = [];          // [{ id, name, color }]
   let marks = new Map();    // "2026-09-29" -> Set(habitId)
   let activeHabit = null;
