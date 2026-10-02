@@ -1,0 +1,491 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Habit Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Patrick+Hand&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #fdfbf4;
+    --grid: #dfe6ee;
+    --margin: #e8a0a0;
+    --ink: #2b3a55;
+    --pencil: #8a8f99;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 24px 16px;
+    min-height: 100vh;
+    background: #e9e4d8;
+    color: var(--ink);
+    font-family: "Patrick Hand", "Comic Sans MS", cursive;
+    font-size: 18px;
+  }
+  .page {
+    position: relative;
+    max-width: 820px;
+    margin: 0 auto;
+    padding: 28px 28px 36px 76px;
+    background-color: var(--paper);
+    background-image:
+      linear-gradient(var(--grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size: 24px 24px;
+    border-radius: 4px;
+    box-shadow: 0 1px 2px rgba(0,0,0,.08), 0 8px 24px rgba(0,0,0,.12);
+  }
+  /* roter Rand links */
+  .page::before {
+    content: "";
+    position: absolute;
+    top: 0; bottom: 0; left: 52px;
+    border-left: 2px solid var(--margin);
+  }
+  /* Lochung */
+  .page::after {
+    content: "";
+    position: absolute;
+    top: 40px; bottom: 40px; left: 16px;
+    width: 16px;
+    background: radial-gradient(circle, #e9e4d8 6px, transparent 7px) center / 16px 120px repeat-y;
+  }
+
+  header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  h1 {
+    flex: 1;
+    margin: 0;
+    font-family: "Caveat", cursive;
+    font-weight: 700;
+    font-size: 2.6rem;
+    line-height: 1;
+  }
+  .nav {
+    background: none;
+    border: none;
+    font: inherit;
+    font-size: 1.6rem;
+    color: var(--pencil);
+    cursor: pointer;
+    padding: 0 6px;
+  }
+  .nav:hover { color: var(--ink); }
+
+  /* Habits */
+  .habits {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 14px;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+  .habit {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 2px 10px;
+    border: 2px solid transparent;
+    border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px;
+    background: none;
+    font: inherit;
+    color: var(--ink);
+    cursor: pointer;
+  }
+  .habit.active { border-color: var(--ink); }
+  .habit .dot { width: 14px; height: 14px; }
+  .habit .del {
+    color: var(--pencil);
+    font-size: .9em;
+    margin-left: 2px;
+  }
+  .habit .del:hover { color: #c0392b; }
+
+  form.add {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  form.add input[type=text] {
+    width: 140px;
+    border: none;
+    border-bottom: 2px dashed var(--pencil);
+    background: transparent;
+    font: inherit;
+    color: var(--ink);
+    outline: none;
+  }
+  form.add input[type=color] {
+    width: 26px; height: 26px;
+    border: none; padding: 0; background: none; cursor: pointer;
+  }
+  form.add button {
+    border: none; background: none; font: inherit; font-size: 1.4rem;
+    color: var(--ink); cursor: pointer; line-height: 1;
+  }
+
+  /* Kalender */
+  .weekdays, .days {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 6px;
+  }
+  .weekdays div {
+    text-align: center;
+    font-family: "Caveat", cursive;
+    font-size: 1.3rem;
+    color: var(--pencil);
+  }
+  .day {
+    min-height: 76px;
+    padding: 4px 6px;
+    border: 1.5px solid rgba(43,58,85,.35);
+    border-radius: 3px 6px 4px 7px;
+    background: rgba(253,251,244,.6);
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    user-select: none;
+  }
+  .day:hover { border-color: var(--ink); }
+  .day.empty { border: none; background: none; cursor: default; }
+  .day.today { border: 2.5px solid var(--margin); }
+  .day .num { font-size: 1rem; }
+  .day .dots {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-top: auto;
+  }
+  .dot {
+    display: inline-block;
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    /* leicht unregelmäßig wie mit Stift gemalt */
+    border-radius: 48% 52% 45% 55% / 55% 45% 52% 48%;
+  }
+
+  .hint {
+    margin-top: 18px;
+    color: var(--pencil);
+    font-size: .95rem;
+  }
+  .status { min-height: 1.4em; color: #c0392b; font-size: .95rem; margin: 8px 0 0; }
+
+  .login { max-width: 360px; padding-top: 12px; }
+  .login p { margin: 0 0 12px; }
+  .login form { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  .login input {
+    flex: 1;
+    min-width: 0;
+    border: none;
+    border-bottom: 2px dashed var(--pencil);
+    background: transparent;
+    font: inherit;
+    color: var(--ink);
+    outline: none;
+  }
+  .login button, .logout {
+    border: 2px solid var(--ink);
+    border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px;
+    background: none;
+    font: inherit;
+    color: var(--ink);
+    padding: 2px 12px;
+    cursor: pointer;
+  }
+  .logout { border: none; color: var(--pencil); font-size: .95rem; padding: 0; }
+  .logout:hover { color: var(--ink); }
+  .footer { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; align-items: baseline; }
+
+  @media (max-width: 560px) {
+    .page { padding: 20px 12px 28px 44px; }
+    .page::before { left: 32px; }
+    .page::after { left: 8px; }
+    h1 { font-size: 2rem; }
+    .day { min-height: 56px; padding: 2px 3px; }
+    .dot { width: 9px; height: 9px; }
+    .weekdays, .days { gap: 3px; }
+  }
+</style>
+</head>
+<body>
+  <main class="page">
+    <section id="login" class="login" hidden>
+      <h1>Habit Tracker</h1>
+      <p>Melde dich mit deiner E-Mail an – du bekommst einen Link zum Einloggen.</p>
+      <form id="login-form">
+        <input type="email" id="email" required placeholder="deine@email.de" autocomplete="email">
+        <button type="submit">Link senden</button>
+      </form>
+    </section>
+
+    <section id="app" hidden>
+      <header>
+        <button class="nav" id="prev" aria-label="Vorheriger Monat">&larr;</button>
+        <h1 id="title"></h1>
+        <button class="nav" id="next" aria-label="Nächster Monat">&rarr;</button>
+      </header>
+
+      <div class="habits" id="habits"></div>
+
+      <div class="weekdays">
+        <div>Mo</div><div>Di</div><div>Mi</div><div>Do</div><div>Fr</div><div>Sa</div><div>So</div>
+      </div>
+      <div class="days" id="days"></div>
+
+      <div class="footer">
+        <p class="hint">Habit oben auswählen, dann auf einen Tag klicken, um einen Punkt zu setzen oder zu entfernen.</p>
+        <button class="logout" id="logout">abmelden (<span id="who"></span>)</button>
+      </div>
+    </section>
+
+    <p class="status" id="status" role="status"></p>
+  </main>
+
+<script src="config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script>
+  const MONTHS = ["Januar","Februar","März","April","Mai","Juni","Juli","August","September","Oktober","November","Dezember"];
+  const $ = (id) => document.getElementById(id);
+
+  const today = new Date();
+  const view = { year: today.getFullYear(), month: today.getMonth() };
+
+  let db = null;
+  let userId = null;
+  let habits = [];          // [{ id, name, color }]
+  let marks = new Map();    // "2026-09-29" -> Set(habitId)
+  let activeHabit = null;
+  let loadToken = 0;
+
+  function showStatus(msg, isError = true) {
+    const el = $("status");
+    el.textContent = msg;
+    el.style.color = isError ? "" : "var(--ink)";
+  }
+
+  function fail(error) {
+    console.error(error);
+    showStatus("Fehler: " + (error.message || error));
+  }
+
+  function dateKey(y, m, d) {
+    return `${y}-${String(m + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+  }
+
+  function daysInMonth(y, m) {
+    return new Date(y, m + 1, 0).getDate();
+  }
+
+  // --- Daten ---
+
+  async function loadHabits() {
+    const { data, error } = await db.from("habits").select("id,name,color").order("created_at");
+    if (error) return fail(error);
+    habits = data;
+    if (!habits.some(h => h.id === activeHabit)) activeHabit = habits[0]?.id ?? null;
+  }
+
+  async function loadMarks() {
+    const token = ++loadToken;
+    const { year, month } = view;
+    const { data, error } = await db.from("marks")
+      .select("habit_id,day")
+      .gte("day", dateKey(year, month, 1))
+      .lte("day", dateKey(year, month, daysInMonth(year, month)));
+    if (token !== loadToken) return; // inzwischen anderer Monat gewählt
+    if (error) return fail(error);
+    marks = new Map();
+    for (const m of data) {
+      if (!marks.has(m.day)) marks.set(m.day, new Set());
+      marks.get(m.day).add(m.habit_id);
+    }
+    renderDays();
+  }
+
+  async function addHabit(name, color) {
+    const { data, error } = await db.from("habits")
+      .insert({ name, color })
+      .select("id,name,color")
+      .single();
+    if (error) return fail(error);
+    habits.push(data);
+    activeHabit = data.id;
+    render();
+  }
+
+  async function deleteHabit(id) {
+    const { error } = await db.from("habits").delete().eq("id", id);
+    if (error) return fail(error);
+    habits = habits.filter(h => h.id !== id);
+    for (const set of marks.values()) set.delete(id);
+    if (activeHabit === id) activeHabit = habits[0]?.id ?? null;
+    render();
+  }
+
+  async function toggle(key) {
+    if (!activeHabit) return showStatus("Lege zuerst ein Habit an.");
+    const id = activeHabit;
+    const set = marks.get(key) ?? new Set();
+    const had = set.has(id);
+    // sofort anzeigen, bei Fehler zurücknehmen
+    had ? set.delete(id) : set.add(id);
+    marks.set(key, set);
+    renderDays();
+
+    const { error } = had
+      ? await db.from("marks").delete().eq("habit_id", id).eq("day", key)
+      : await db.from("marks").upsert({ habit_id: id, day: key }, { ignoreDuplicates: true });
+    if (error) {
+      had ? set.add(id) : set.delete(id);
+      renderDays();
+      fail(error);
+    }
+  }
+
+  // --- Anzeige ---
+
+  function renderHabits() {
+    const el = $("habits");
+    el.innerHTML = "";
+    for (const h of habits) {
+      const btn = document.createElement("button");
+      btn.className = "habit" + (h.id === activeHabit ? " active" : "");
+      btn.innerHTML = `<span class="dot"></span><span></span><span class="del" title="Löschen">×</span>`;
+      btn.children[0].style.background = h.color;
+      btn.children[1].textContent = h.name;
+      btn.onclick = (e) => {
+        if (e.target.classList.contains("del")) {
+          if (!btn.dataset.confirm) {
+            btn.dataset.confirm = "1";
+            e.target.textContent = "löschen?";
+            return;
+          }
+          deleteHabit(h.id);
+        } else {
+          activeHabit = h.id;
+          render();
+        }
+      };
+      el.appendChild(btn);
+    }
+
+    const form = document.createElement("form");
+    form.className = "add";
+    form.innerHTML = `
+      <input type="color" value="#9b59b6" aria-label="Farbe">
+      <input type="text" placeholder="neues Habit…" maxlength="24">
+      <button type="submit" aria-label="Hinzufügen">+</button>`;
+    form.onsubmit = (e) => {
+      e.preventDefault();
+      const name = form.querySelector("input[type=text]").value.trim();
+      if (name) addHabit(name, form.querySelector("input[type=color]").value);
+    };
+    el.appendChild(form);
+  }
+
+  function renderDays() {
+    const { year, month } = view;
+    $("title").textContent = `${MONTHS[month]} ${year}`;
+    const el = $("days");
+    el.innerHTML = "";
+
+    const offset = (new Date(year, month, 1).getDay() + 6) % 7; // Montag zuerst
+    const colors = Object.fromEntries(habits.map(h => [h.id, h.color]));
+
+    for (let i = 0; i < offset; i++) {
+      el.appendChild(Object.assign(document.createElement("div"), { className: "day empty" }));
+    }
+    for (let d = 1; d <= daysInMonth(year, month); d++) {
+      const key = dateKey(year, month, d);
+      const cell = document.createElement("div");
+      cell.className = "day";
+      if (year === today.getFullYear() && month === today.getMonth() && d === today.getDate()) {
+        cell.classList.add("today");
+      }
+      cell.innerHTML = `<span class="num">${d}</span><div class="dots"></div>`;
+      for (const id of marks.get(key) ?? []) {
+        if (!colors[id]) continue;
+        const dot = document.createElement("span");
+        dot.className = "dot";
+        dot.style.background = colors[id];
+        cell.lastChild.appendChild(dot);
+      }
+      cell.onclick = () => toggle(key);
+      el.appendChild(cell);
+    }
+  }
+
+  function render() {
+    renderHabits();
+    renderDays();
+  }
+
+  function changeMonth(delta) {
+    const d = new Date(view.year, view.month + delta, 1);
+    view.year = d.getFullYear();
+    view.month = d.getMonth();
+    renderDays();
+    loadMarks();
+  }
+
+  // --- Anmeldung ---
+
+  async function onSession(session) {
+    const uid = session?.user.id ?? null;
+    if (uid === userId) return; // z. B. nur Token erneuert
+    userId = uid;
+    $("login").hidden = !!uid;
+    $("app").hidden = !uid;
+    showStatus("");
+    if (!uid) return;
+    $("who").textContent = session.user.email;
+    habits = [];
+    marks = new Map();
+    await loadHabits();
+    render();
+    loadMarks();
+  }
+
+  function init() {
+    const cfg = window.HABIT_CONFIG || {};
+    if (!cfg.url || cfg.url.includes("DEIN-PROJEKT")) {
+      showStatus("Bitte zuerst Supabase-URL und Key in config.js eintragen.");
+      return;
+    }
+    db = supabase.createClient(cfg.url, cfg.anonKey);
+
+    // Supabase-Aufrufe nicht direkt im Callback ausführen (Empfehlung von supabase-js)
+    db.auth.onAuthStateChange((_event, session) => setTimeout(() => onSession(session), 0));
+
+    $("login-form").onsubmit = async (e) => {
+      e.preventDefault();
+      if (location.protocol === "file:") {
+        return showStatus("Der Login-Link funktioniert nur, wenn die Seite über http(s) geöffnet wird (siehe README).");
+      }
+      const email = $("email").value.trim();
+      const { error } = await db.auth.signInWithOtp({
+        email,
+        options: { emailRedirectTo: location.origin + location.pathname },
+      });
+      if (error) return fail(error);
+      showStatus("Link gesendet – schau in dein Postfach.", false);
+    };
+
+    $("logout").onclick = () => db.auth.signOut();
+    $("prev").onclick = () => changeMonth(-1);
+    $("next").onclick = () => changeMonth(1);
+  }
+
+  init();
+</script>
+</body>
+</html>
