@@ -1,21 +1,26 @@
 # Habit Tracker
 
-Simpler Habit Tracker im Notizbuch-Stil. Die Daten liegen in Supabase, du kannst also von jedem Gerät darauf zugreifen.
+Ein einfacher Habit Tracker im Notizbuch-Stil. Du legst deine Gewohnheiten an, zum Beispiel „Laufen“ oder „Lesen“, und setzt für jeden Tag, an dem du sie geschafft hast, einen farbigen Punkt in den Kalender.
 
-## Einrichtung
+**Zur App:** [andieissocool.github.io/habit-tracker](https://andieissocool.github.io/habit-tracker/)
 
-1. **Supabase-Projekt anlegen:** Auf [supabase.com](https://supabase.com) ein kostenloses Konto und ein neues Projekt erstellen.
-2. **Tabellen anlegen:** Im Dashboard den **SQL Editor** öffnen, den Inhalt von [supabase.sql](supabase.sql) einfügen und auf **Run** klicken.
-3. **Zugangsdaten eintragen:** Unter **Project Settings → API** (bzw. **API Keys**) die *Project URL* und den *anon*- bzw. *publishable*-Key kopieren und in [config.js](config.js) eintragen.
-   Der Key darf öffentlich sein, denn die Row Level Security sorgt dafür, dass jeder nur seine eigenen Daten sieht.
-4. **Seite hosten:** Der Login-Link funktioniert nur, wenn die Seite über `http(s)://` geöffnet wird, nicht per Doppelklick als Datei.
-   - Lokal testen: `npx serve .` und dann `http://localhost:3000` öffnen
-   - Online stellen: den Ordner auf GitHub Pages, Netlify oder Cloudflare Pages hochladen (alles kostenlos)
-5. **Adresse freigeben:** Unter **Authentication → URL Configuration** die Adresse deiner Seite als *Site URL* eintragen und zusätzlich unter *Redirect URLs* hinzufügen, zum Beispiel `http://localhost:3000` und `https://deinname.github.io/habit-tracker/`.
+Deine Daten werden online gespeichert. Du kannst also vom Handy und vom Laptop aus auf denselben Kalender zugreifen.
 
-Danach die Seite öffnen, E-Mail eingeben und auf den Link in der Mail klicken. Das war's.
+## Anmelden
 
-## Hinweise
+1. Gib deine E-Mail-Adresse ein und klicke auf **Link senden**.
+2. Du bekommst eine Mail mit einem Login-Link. Klicke darauf, und du bist angemeldet.
 
-- Der kostenlose E-Mail-Versand von Supabase ist auf wenige Mails pro Stunde begrenzt. Für den Eigengebrauch reicht das.
-- Kostenlose Supabase-Projekte werden nach etwa einer Woche ohne Nutzung pausiert und lassen sich im Dashboard mit einem Klick wieder starten.
+Ein Passwort brauchst du nicht. Kommt keine Mail an, schau im Spam-Ordner nach. Es können nur wenige Login-Mails pro Stunde verschickt werden, deshalb kann es manchmal etwas dauern.
+
+## So funktioniert's
+
+- **Habit anlegen:** Farbe wählen, Namen eintippen und auf **+** klicken.
+- **Habit auswählen:** Oben auf ein Habit klicken. Das ausgewählte ist hervorgehoben.
+- **Tag abhaken:** Auf einen Tag im Kalender klicken, um einen Punkt in der Farbe des Habits zu setzen. Ein zweiter Klick entfernt ihn wieder.
+- **Monat wechseln:** Mit den Pfeilen ← und → neben dem Monatsnamen.
+- **Habit löschen:** Auf das **×** neben dem Habit klicken und mit **löschen?** bestätigen. Dabei werden auch alle Punkte dieses Habits entfernt.
+
+## Datenschutz
+
+Jeder sieht nur seine eigenen Habits und Einträge. Gespeichert werden deine E-Mail-Adresse für den Login sowie deine Habits und die abgehakten Tage, auf Servern in der EU.
