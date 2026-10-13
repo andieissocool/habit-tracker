@@ -77,29 +77,53 @@
   .habits {
     display: flex;
     flex-direction: column;
-    gap: 8px;
-    align-items: flex-start;
-  }
-  .habit {
-    display: inline-flex;
-    align-items: center;
     gap: 6px;
-    padding: 2px 10px;
+    align-items: stretch;
+  }
+  .habit-row {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+  }
+  .habit-row.sub { padding-left: 18px; }
+  .habit-row .name {
+    flex: 1;
+    min-width: 0;
+    padding: 2px 8px;
     border: 2px solid transparent;
     border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px;
     background: none;
     font: inherit;
     color: var(--ink);
+    text-align: left;
+    overflow-wrap: anywhere;
     cursor: pointer;
   }
-  .habit.active { border-color: var(--ink); }
-  .habit .dot { width: 14px; height: 14px; }
-  .habit .del {
-    color: var(--pencil);
-    font-size: .9em;
-    margin-left: 2px;
+  .habit-row.active .name { border-color: var(--ink); }
+  .habit-row.hidden .name { color: var(--pencil); text-decoration: line-through; }
+  .dot-btn {
+    display: inline-flex;
+    padding: 4px;
+    border: none;
+    background: none;
+    cursor: pointer;
   }
-  .habit .del:hover { color: #c0392b; }
+  .dot-btn .dot { width: 14px; height: 14px; }
+  .icon {
+    border: none;
+    background: none;
+    font: inherit;
+    font-size: .95rem;
+    color: var(--pencil);
+    padding: 0 3px;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .icon:hover { color: var(--ink); }
+  .icon.del:hover { color: #c0392b; }
+  .back { border: none; background: none; font: inherit; font-size: .95rem; color: var(--pencil); padding: 0; cursor: pointer; }
+  .back:hover { color: var(--ink); }
+  .sublabel { margin-top: 8px; color: var(--pencil); font-size: .95rem; }
 
   form.add {
     display: inline-flex;
@@ -123,6 +147,9 @@
     border: none; background: none; font: inherit; font-size: 1.4rem;
     color: var(--ink); cursor: pointer; line-height: 1;
   }
+  form.add.sub { padding-left: 18px; }
+  form.edit input[type=text] { width: 110px; }
+  form.edit button { font-size: 1.1rem; }
 
   /* Kalender */
   .weekdays, .days {
@@ -198,6 +225,50 @@
   .tooltip div { display: flex; align-items: center; gap: 6px; }
   .tooltip .val { margin-left: auto; padding-left: 12px; color: var(--pencil); }
 
+  /* Analyse im Fokus */
+  .analytics { margin-top: 36px; }
+  .analytics h3 {
+    margin: 22px 0 8px;
+    font-family: "Caveat", cursive;
+    font-weight: 700;
+    font-size: 1.5rem;
+  }
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 10px;
+  }
+  .stat {
+    padding: 6px 10px;
+    border: 1.5px solid rgba(43,58,85,.35);
+    border-radius: 3px 6px 4px 7px;
+    background: rgba(247,245,240,.55);
+  }
+  .stat b { display: block; font-family: "Caveat", cursive; font-size: 2.1rem; line-height: 1; }
+  .stat span { color: var(--pencil); font-size: .9rem; }
+  .heat {
+    display: grid;
+    grid-auto-flow: column;
+    grid-template-rows: repeat(7, 11px);
+    grid-auto-columns: 11px;
+    gap: 2px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+  }
+  .heat span { border-radius: 2px; background: rgba(43,58,85,.1); }
+  .heat span.pad { visibility: hidden; }
+  .heat span.future { opacity: .4; }
+  .weekbars { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; max-width: 420px; }
+  .weekbars > div { display: flex; flex-direction: column; align-items: center; color: var(--pencil); font-size: .9rem; }
+  .weekbars .track { display: flex; align-items: flex-end; width: 60%; height: 80px; }
+  .weekbars .bar { width: 100%; min-height: 2px; border-radius: 3px 6px 2px 4px; }
+  .subtable { border-collapse: collapse; font-size: .95rem; }
+  .subtable th { color: var(--pencil); font-weight: normal; text-align: left; }
+  .subtable th, .subtable td { padding: 3px 14px 3px 0; border-bottom: 1.5px dashed var(--grid); }
+  .subtable .num { text-align: right; }
+  .subtable tr.hidden td { color: var(--pencil); }
+  .subtable .dot { margin-right: 6px; }
+
   .hint {
     margin-top: 18px;
     color: var(--pencil);
@@ -236,6 +307,8 @@
     .spread { grid-template-columns: minmax(0, 1fr); gap: 20px; }
     .sidebar { order: -1; }
     .habits { flex-direction: row; flex-wrap: wrap; align-items: center; gap: 8px 14px; }
+    .habit-row .name { flex: none; }
+    .sublabel { flex-basis: 100%; }
   }
 
   @media (max-width: 560px) {
@@ -275,16 +348,18 @@
             <div class="legend" id="legend"></div>
             <div class="chart" id="chart"></div>
           </section>
+
+          <section class="analytics" id="analytics" hidden></section>
         </div>
 
         <aside class="sidebar">
-          <h2>Habits</h2>
+          <div id="sidebar-head"></div>
           <div class="habits" id="habits"></div>
         </aside>
       </div>
 
       <div class="footer">
-        <p class="hint">Habit auswählen, dann auf einen Tag klicken, um einen Punkt zu setzen oder zu entfernen.</p>
+        <p class="hint">Habit auswählen, dann auf einen Tag klicken, um einen Punkt zu setzen oder zu entfernen. Klick auf den Farbpunkt blendet ein Habit aus, ◎ öffnet den Fokus mit Unterkategorien und Analyse.</p>
         <button class="logout" id="logout">abmelden (<span id="who"></span>)</button>
       </div>
     </section>
@@ -296,6 +371,10 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script>
   const MONTHS = ["Januar","Februar","März","April","Mai","Juni","Juli","August","September","Oktober","November","Dezember"];
+  const WEEKDAYS = ["Mo","Di","Mi","Do","Fr","Sa","So"];
+  const PALETTE = ["#9b59b6","#2980b9","#27ae60","#e67e22","#c0392b","#16a085","#d35400","#e84393"];
+  const COLS = "id,name,color,hidden,parent_id";
+  const LOG_K = 30; // Stärke der logarithmischen Stauchung im Trend
   const $ = (id) => document.getElementById(id);
 
   const today = new Date();
@@ -303,9 +382,11 @@
 
   let db = null;
   let userId;               // undefined = noch unbekannt, null = abgemeldet
-  let habits = [];          // [{ id, name, color }]
-  let marks = new Map();    // "2026-09-29" -> Set(habitId), ganzes Jahr view.year
+  let habits = [];          // [{ id, name, color, hidden, parent_id }] – parent_id gesetzt = Unterkategorie
+  let marks = new Map();    // "2026-09-29" -> Set(habitId), alle Jahre
   let activeHabit = null;
+  let focusId = null;       // Habit im Fokus (immer ein Haupt-Habit)
+  let editingId = null;
   let loadToken = 0;
 
   function showStatus(msg, isError = true) {
@@ -316,40 +397,75 @@
 
   function fail(error) {
     console.error(error);
-    showStatus("Fehler: " + (error.message || error));
+    const msg = error.message || String(error);
+    if (/column/.test(msg) && /hidden|parent_id/.test(msg)) {
+      return showStatus("Die Datenbank ist noch auf dem alten Stand – bitte den Update-Abschnitt am Ende von supabase.sql im SQL Editor ausführen.");
+    }
+    showStatus("Fehler: " + msg);
   }
 
   function dateKey(y, m, d) {
     return `${y}-${String(m + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
   }
 
+  const keyOf = (date) => dateKey(date.getFullYear(), date.getMonth(), date.getDate());
+  const dayNum = (key) => Date.UTC(+key.slice(0, 4), +key.slice(5, 7) - 1, +key.slice(8)) / 864e5;
+  const pct = (n, d) => d ? Math.round(n / d * 100) : 0;
+
   function daysInMonth(y, m) {
     return new Date(y, m + 1, 0).getDate();
+  }
+
+  // --- Habits und Unterkategorien ---
+
+  const byId = (id) => habits.find(h => h.id === id);
+  const topLevel = () => habits.filter(h => !h.parent_id);
+  const subsOf = (id) => habits.filter(h => h.parent_id === id);
+  // Ein Haupt-Habit gilt als erledigt, wenn es selbst oder eine Unterkategorie abgehakt ist.
+  const groupIds = (h) => [h.id, ...subsOf(h.id).map(s => s.id)];
+
+  function doneOn(key, ids) {
+    const set = marks.get(key);
+    return !!set && ids.some(id => set.has(id));
+  }
+
+  // Was gerade in der Seitenleiste auswählbar ist
+  function selectable() {
+    return focusId ? [byId(focusId), ...subsOf(focusId)] : topLevel();
+  }
+
+  function fixActive() {
+    const list = selectable();
+    if (!list.some(h => h.id === activeHabit)) activeHabit = list[0]?.id ?? null;
+  }
+
+  // erste Palettenfarbe, die unter den Geschwistern noch frei ist
+  function nextColor(siblings) {
+    const used = new Set(siblings.map(h => h.color.toLowerCase()));
+    return PALETTE.find(c => !used.has(c)) ?? PALETTE[siblings.length % PALETTE.length];
   }
 
   // --- Daten ---
 
   async function loadHabits() {
-    const { data, error } = await db.from("habits").select("id,name,color").order("created_at");
+    const { data, error } = await db.from("habits").select(COLS).order("created_at");
     if (error) return fail(error);
     habits = data;
-    if (!habits.some(h => h.id === activeHabit)) activeHabit = habits[0]?.id ?? null;
+    if (focusId && !byId(focusId)) focusId = null;
+    fixActive();
   }
 
-  // Lädt alle Punkte des angezeigten Jahres (für Kalender und Trend).
+  // Lädt alle Punkte (für Kalender, Trend und Serien über Jahresgrenzen).
   // Supabase liefert höchstens 1000 Zeilen pro Abfrage, daher seitenweise.
   async function loadMarks() {
     const token = ++loadToken;
-    const { year } = view;
     const rows = [];
     for (let from = 0; ; from += 1000) {
       const { data, error } = await db.from("marks")
         .select("habit_id,day")
-        .gte("day", dateKey(year, 0, 1))
-        .lte("day", dateKey(year, 11, 31))
         .order("day").order("habit_id")
         .range(from, from + 999);
-      if (token !== loadToken) return; // inzwischen anderes Jahr gewählt
+      if (token !== loadToken) return; // inzwischen neu angemeldet
       if (error) return fail(error);
       rows.push(...data);
       if (data.length < 1000) break;
@@ -362,10 +478,10 @@
     renderDays();
   }
 
-  async function addHabit(name, color) {
+  async function addHabit(name, color, parentId) {
     const { data, error } = await db.from("habits")
-      .insert({ name, color })
-      .select("id,name,color")
+      .insert({ name, color, parent_id: parentId })
+      .select(COLS)
       .single();
     if (error) return fail(error);
     habits.push(data);
@@ -373,18 +489,37 @@
     render();
   }
 
+  // sofort anzeigen, bei Fehler zurücknehmen
+  async function updateHabit(id, fields) {
+    const h = byId(id);
+    const before = { ...h };
+    Object.assign(h, fields);
+    render();
+    const { error } = await db.from("habits").update(fields).eq("id", id);
+    if (error) {
+      Object.assign(h, before);
+      render();
+      fail(error);
+    }
+  }
+
   async function deleteHabit(id) {
     const { error } = await db.from("habits").delete().eq("id", id);
     if (error) return fail(error);
-    habits = habits.filter(h => h.id !== id);
-    for (const set of marks.values()) set.delete(id);
-    if (activeHabit === id) activeHabit = habits[0]?.id ?? null;
+    const gone = new Set(groupIds(byId(id))); // Unterkategorien löscht die Datenbank mit
+    habits = habits.filter(h => !gone.has(h.id));
+    for (const set of marks.values()) for (const g of gone) set.delete(g);
+    if (gone.has(focusId)) focusId = null;
+    fixActive();
     render();
   }
 
   async function toggle(key) {
-    if (!activeHabit) return showStatus("Lege zuerst ein Habit an.");
-    const id = activeHabit;
+    const h = byId(activeHabit);
+    if (!h) return showStatus("Lege zuerst ein Habit an.");
+    if (h.hidden) return showStatus(`„${h.name}“ ist ausgeblendet – zum Abhaken erst wieder einblenden.`);
+    showStatus("");
+    const id = h.id;
     const set = marks.get(key) ?? new Set();
     const had = set.has(id);
     // sofort anzeigen, bei Fehler zurücknehmen
@@ -404,76 +539,181 @@
 
   // --- Anzeige ---
 
-  function renderHabits() {
-    const el = $("habits");
-    el.innerHTML = "";
-    for (const h of habits) {
-      const btn = document.createElement("button");
-      btn.className = "habit" + (h.id === activeHabit ? " active" : "");
-      btn.innerHTML = `<span class="dot"></span><span></span><span class="del" title="Löschen">×</span>`;
-      btn.children[0].style.background = h.color;
-      btn.children[1].textContent = h.name;
-      btn.onclick = (e) => {
-        if (e.target.classList.contains("del")) {
-          if (!btn.dataset.confirm) {
-            btn.dataset.confirm = "1";
-            e.target.textContent = "löschen?";
-            return;
-          }
-          deleteHabit(h.id);
-        } else {
-          activeHabit = h.id;
-          render();
-        }
-      };
-      el.appendChild(btn);
-    }
+  function el(tag, className, text) {
+    const e = document.createElement(tag);
+    if (className) e.className = className;
+    if (text !== undefined) e.textContent = text;
+    return e;
+  }
 
-    const form = document.createElement("form");
-    form.className = "add";
+  function iconButton(text, label, onclick) {
+    const b = el("button", "icon", text);
+    b.type = "button";
+    b.title = label;
+    b.setAttribute("aria-label", label);
+    b.onclick = onclick;
+    return b;
+  }
+
+  function colorDot(h) {
+    const dot = el("span", "dot");
+    const color = safeColor(h.color);
+    // ausgeblendet = nur noch ein Kringel
+    if (h.hidden) dot.style.boxShadow = `inset 0 0 0 2px ${color}`;
+    else dot.style.background = color;
+    return dot;
+  }
+
+  function habitRow(h) {
+    if (h.id === editingId) return editForm(h);
+    const row = el("div", "habit-row");
+    if (h.parent_id) row.classList.add("sub");
+    if (h.id === activeHabit) row.classList.add("active");
+    if (h.hidden) row.classList.add("hidden");
+
+    const dotBtn = iconButton("", h.hidden ? "Einblenden" : "Ausblenden",
+      () => updateHabit(h.id, { hidden: !h.hidden }));
+    dotBtn.className = "dot-btn";
+    dotBtn.appendChild(colorDot(h));
+
+    const name = el("button", "name", h.name);
+    name.type = "button";
+    name.onclick = () => { activeHabit = h.id; render(); };
+    row.append(dotBtn, name);
+
+    if (!h.parent_id && !focusId) {
+      row.append(iconButton("◎", "Fokus", () => {
+        focusId = activeHabit = h.id;
+        editingId = null;
+        render();
+      }));
+    }
+    row.append(iconButton("✎", "Bearbeiten", () => { editingId = h.id; renderHabits(); }));
+    const del = iconButton("×", "Löschen", () => {
+      if (!del.dataset.confirm) {
+        del.dataset.confirm = "1";
+        del.textContent = "löschen?";
+        return;
+      }
+      deleteHabit(h.id);
+    });
+    del.classList.add("del");
+    row.append(del);
+    return row;
+  }
+
+  function editForm(h) {
+    const form = el("form", "add edit");
+    if (h.parent_id) form.classList.add("sub");
     form.innerHTML = `
-      <input type="color" value="#9b59b6" aria-label="Farbe">
-      <input type="text" placeholder="neues Habit…" maxlength="24">
-      <button type="submit" aria-label="Hinzufügen">+</button>`;
+      <input type="color" aria-label="Farbe">
+      <input type="text" maxlength="24" aria-label="Name">
+      <button type="submit" aria-label="Speichern">✓</button>
+      <button type="button" aria-label="Abbrechen">×</button>`;
+    const [color, text] = form.querySelectorAll("input");
+    color.value = safeColor(h.color);
+    text.value = h.name;
+    const cancel = () => { editingId = null; renderHabits(); };
     form.onsubmit = (e) => {
       e.preventDefault();
-      const name = form.querySelector("input[type=text]").value.trim();
-      if (name) addHabit(name, form.querySelector("input[type=color]").value);
+      const name = text.value.trim();
+      if (!name) return;
+      editingId = null;
+      updateHabit(h.id, { name, color: color.value });
     };
-    el.appendChild(form);
+    form.querySelector("button[type=button]").onclick = cancel;
+    form.onkeydown = (e) => { if (e.key === "Escape") cancel(); };
+    setTimeout(() => text.focus());
+    return form;
+  }
+
+  function addForm(siblings, placeholder, parentId) {
+    const form = el("form", "add");
+    if (parentId) form.classList.add("sub");
+    form.innerHTML = `
+      <input type="color" aria-label="Farbe">
+      <input type="text" maxlength="24">
+      <button type="submit" aria-label="Hinzufügen">+</button>`;
+    const [color, text] = form.querySelectorAll("input");
+    color.value = nextColor(siblings);
+    text.placeholder = placeholder;
+    form.onsubmit = (e) => {
+      e.preventDefault();
+      const name = text.value.trim();
+      if (name) addHabit(name, color.value, parentId);
+    };
+    return form;
+  }
+
+  function renderHabits() {
+    const head = $("sidebar-head");
+    const list = $("habits");
+    head.innerHTML = "";
+    list.innerHTML = "";
+    const focus = focusId && byId(focusId);
+
+    if (focus) {
+      const back = el("button", "back", "← alle Habits");
+      back.onclick = () => {
+        focusId = editingId = null;
+        if (byId(activeHabit)?.parent_id) activeHabit = focus.id;
+        render();
+      };
+      head.appendChild(back);
+    }
+    head.appendChild(el("h2", "", focus ? "Fokus" : "Habits"));
+
+    if (focus) {
+      const subs = subsOf(focus.id);
+      list.appendChild(habitRow(focus));
+      list.appendChild(el("div", "sublabel", "Unterkategorien"));
+      for (const s of subs) list.appendChild(habitRow(s));
+      list.appendChild(addForm(subs, "neue Unterkategorie…", focus.id));
+    } else {
+      for (const h of topLevel()) list.appendChild(habitRow(h));
+      list.appendChild(addForm(topLevel(), "neues Habit…", null));
+    }
+  }
+
+  // Farben der Punkte an einem Tag: ohne Fokus ein Punkt pro Haupt-Habit,
+  // im Fokus das Habit selbst und seine Unterkategorien einzeln.
+  function dayColors(key) {
+    if (!marks.get(key)?.size) return [];
+    if (focusId) {
+      return [byId(focusId), ...subsOf(focusId)]
+        .filter(h => !h.hidden && doneOn(key, [h.id]))
+        .map(h => h.color);
+    }
+    return topLevel()
+      .filter(h => !h.hidden && doneOn(key, groupIds(h)))
+      .map(h => h.color);
   }
 
   function renderDays() {
     const { year, month } = view;
     $("title").textContent = `${MONTHS[month]} ${year}`;
-    const el = $("days");
-    el.innerHTML = "";
+    const days = $("days");
+    days.innerHTML = "";
 
     const offset = (new Date(year, month, 1).getDay() + 6) % 7; // Montag zuerst
-    const colors = Object.fromEntries(habits.map(h => [h.id, h.color]));
-
-    for (let i = 0; i < offset; i++) {
-      el.appendChild(Object.assign(document.createElement("div"), { className: "day empty" }));
-    }
+    for (let i = 0; i < offset; i++) days.appendChild(el("div", "day empty"));
     for (let d = 1; d <= daysInMonth(year, month); d++) {
       const key = dateKey(year, month, d);
-      const cell = document.createElement("div");
-      cell.className = "day";
+      const cell = el("div", "day");
       if (year === today.getFullYear() && month === today.getMonth() && d === today.getDate()) {
         cell.classList.add("today");
       }
       cell.innerHTML = `<span class="num">${d}</span><div class="dots"></div>`;
-      for (const id of marks.get(key) ?? []) {
-        if (!colors[id]) continue;
-        const dot = document.createElement("span");
-        dot.className = "dot";
-        dot.style.background = colors[id];
+      for (const color of dayColors(key)) {
+        const dot = el("span", "dot");
+        dot.style.background = safeColor(color);
         cell.lastChild.appendChild(dot);
       }
       cell.onclick = () => toggle(key);
-      el.appendChild(cell);
+      days.appendChild(cell);
     }
     renderChart();
+    renderAnalytics();
   }
 
   // Farben kommen aus der Datenbank – nur echte Hex-Werte ins SVG übernehmen.
@@ -481,43 +721,60 @@
     return /^#[0-9a-f]{6}$/i.test(c) ? c : "#8c8780";
   }
 
-  // Pro Habit und Monat: erledigte Tage und mögliche Tage (bis heute).
-  function yearStats() {
-    const { year } = view;
-    const done = new Map(habits.map(h => [h.id, Array(12).fill(0)]));
-    for (const [key, set] of marks) {
-      const m = Number(key.slice(5, 7)) - 1;
-      for (const id of set) {
-        const counts = done.get(id);
-        if (counts) counts[m]++;
-      }
-    }
+  // Mögliche Tage pro Monat (bis heute).
+  function possibleDays(year) {
     const possible = [];
     for (let m = 0; m < 12; m++) {
-      const start = new Date(year, m, 1);
-      if (start > today) possible.push(0);
+      if (new Date(year, m, 1) > today) possible.push(0);
       else if (year === today.getFullYear() && m === today.getMonth()) possible.push(today.getDate());
       else possible.push(daysInMonth(year, m));
     }
-    return { done, possible };
+    return possible;
   }
 
+  function monthCounts(ids, year) {
+    const counts = Array(12).fill(0);
+    for (const key of marks.keys()) {
+      if (key.startsWith(`${year}-`) && doneOn(key, ids)) counts[Number(key.slice(5, 7)) - 1]++;
+    }
+    return counts;
+  }
+
+  // Linien im Trend: ohne Fokus eine pro Haupt-Habit, im Fokus Gesamt plus Unterkategorien.
+  function chartSeries() {
+    const year = view.year;
+    const line = (name, h, ids) => ({ name, color: safeColor(h.color), done: monthCounts(ids, year) });
+    if (focusId) {
+      const f = byId(focusId);
+      const subs = subsOf(f.id);
+      const list = f.hidden ? [] : [line(subs.length ? `${f.name} gesamt` : f.name, f, groupIds(f))];
+      for (const s of subs) if (!s.hidden) list.push(line(s.name, s, [s.id]));
+      return list;
+    }
+    return topLevel().filter(h => !h.hidden).map(h => line(h.name, h, groupIds(h)));
+  }
+
+  // Logarithmisch gestaucht, damit Unterschiede bei kleinen Quoten sichtbar werden; 0 % bleibt darstellbar.
+  const logScale = (v) => Math.log1p(LOG_K * v) / Math.log1p(LOG_K);
+
   function renderChart() {
-    $("trend-year").textContent = view.year;
-    const el = $("chart");
+    const focus = focusId && byId(focusId);
+    $("trend-year").textContent = focus ? `${view.year} · ${focus.name}` : view.year;
+    const chart = $("chart");
     const legend = $("legend");
-    el.innerHTML = "";
+    chart.innerHTML = "";
     legend.innerHTML = "";
 
-    const W = el.clientWidth || 640, H = 220;
+    const W = chart.clientWidth || 640, H = 220;
     const pad = { l: 44, r: 12, t: 10, b: 28 };
     const iw = W - pad.l - pad.r, ih = H - pad.t - pad.b;
     const x = (m) => pad.l + (m + 0.5) * iw / 12;
-    const y = (v) => pad.t + (1 - v) * ih;
-    const { done, possible } = yearStats();
+    const y = (v) => pad.t + (1 - logScale(Math.min(v, 1))) * ih;
+    const possible = possibleDays(view.year);
+    const series = chartSeries();
 
-    let svg = `<svg viewBox="0 0 ${W} ${H}" height="${H}" role="img" aria-label="Anteil erledigter Tage pro Monat im Jahr ${view.year}">`;
-    for (const v of [0, 0.5, 1]) {
+    let svg = `<svg viewBox="0 0 ${W} ${H}" height="${H}" role="img" aria-label="Anteil erledigter Tage pro Monat im Jahr ${view.year}, logarithmische Skala">`;
+    for (const v of [0, 0.05, 0.1, 0.25, 0.5, 1]) {
       svg += `<line class="grid" x1="${pad.l}" x2="${W - pad.r}" y1="${y(v)}" y2="${y(v)}"/>`;
       svg += `<text class="label" x="${pad.l - 8}" y="${y(v) + 5}" text-anchor="end">${v * 100}%</text>`;
     }
@@ -526,60 +783,56 @@
     });
     svg += `<line class="cross" id="cross" y1="${pad.t}" y2="${pad.t + ih}" visibility="hidden"/>`;
 
-    for (const h of habits) {
-      const color = safeColor(h.color);
+    for (const s of series) {
       // abgeschlossene Monate durchgezogen, der laufende Monat gestrichelt
       const pts = [];
       for (let m = 0; m < 12; m++) {
-        if (possible[m]) pts.push({ m, px: x(m), py: y(done.get(h.id)[m] / possible[m]) });
+        if (possible[m]) pts.push({ m, px: x(m), py: y(s.done[m] / possible[m]) });
       }
       const running = pts.length && view.year === today.getFullYear() && pts.at(-1).m === today.getMonth();
       const solid = running ? pts.slice(0, -1) : pts;
       const line = (p) => p.map((q, i) => `${i ? "L" : "M"}${q.px},${q.py}`).join(" ");
-      const stroke = `fill="none" stroke="${color}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"`;
+      const stroke = `fill="none" stroke="${s.color}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"`;
       if (solid.length > 1) svg += `<path d="${line(solid)}" ${stroke}/>`;
       if (running && pts.length > 1) svg += `<path d="${line(pts.slice(-2))}" ${stroke} stroke-dasharray="4 5"/>`;
       for (const q of pts) {
-        svg += `<circle cx="${q.px}" cy="${q.py}" r="4" fill="${color}" stroke="var(--paper)" stroke-width="2"/>`;
+        svg += `<circle cx="${q.px}" cy="${q.py}" r="4" fill="${s.color}" stroke="var(--paper)" stroke-width="2"/>`;
       }
 
-      const item = document.createElement("span");
-      item.innerHTML = `<span class="dot"></span><span></span>`;
-      item.children[0].style.background = color;
-      item.children[1].textContent = h.name;
+      const item = el("span");
+      const dot = el("span", "dot");
+      dot.style.background = s.color;
+      item.append(dot, el("span", "", s.name));
       legend.appendChild(item);
     }
 
-    if (!habits.length) {
-      svg += `<text class="empty-note" x="${pad.l + iw / 2}" y="${pad.t + ih / 2}" text-anchor="middle">Lege ein Habit an, um hier deinen Verlauf zu sehen.</text>`;
+    if (!series.length) {
+      const note = habits.length ? "Alles ausgeblendet." : "Lege ein Habit an, um hier deinen Verlauf zu sehen.";
+      svg += `<text class="empty-note" x="${pad.l + iw / 2}" y="${pad.t + ih / 2}" text-anchor="middle">${note}</text>`;
     }
     // unsichtbare Spalten pro Monat für den Hover-Tooltip
     for (let m = 0; m < 12; m++) {
       svg += `<rect data-m="${m}" x="${pad.l + m * iw / 12}" y="0" width="${iw / 12}" height="${H}" fill="transparent"/>`;
     }
-    el.innerHTML = svg + "</svg>";
+    chart.innerHTML = svg + "</svg>";
 
-    const tip = document.createElement("div");
-    tip.className = "tooltip";
+    const tip = el("div", "tooltip");
     tip.hidden = true;
-    el.appendChild(tip);
-    const cross = el.querySelector("#cross");
+    chart.appendChild(tip);
+    const cross = chart.querySelector("#cross");
 
-    el.querySelectorAll("rect[data-m]").forEach(r => {
+    chart.querySelectorAll("rect[data-m]").forEach(r => {
       r.addEventListener("pointerenter", () => {
         const m = Number(r.dataset.m);
-        if (!habits.length || !possible[m]) return;
+        if (!series.length || !possible[m]) return;
         tip.innerHTML = "";
-        const head = document.createElement("b");
-        head.textContent = `${MONTHS[m]} ${view.year}`;
-        tip.appendChild(head);
-        for (const h of habits) {
-          const n = done.get(h.id)[m];
-          const row = document.createElement("div");
-          row.innerHTML = `<span class="dot"></span><span></span><span class="val"></span>`;
-          row.children[0].style.background = safeColor(h.color);
-          row.children[1].textContent = h.name;
-          row.children[2].textContent = `${n}/${possible[m]} Tage · ${Math.round(n / possible[m] * 100)}%`;
+        tip.appendChild(el("b", "", `${MONTHS[m]} ${view.year}`));
+        for (const s of series) {
+          const n = s.done[m];
+          const row = el("div");
+          const dot = el("span", "dot");
+          dot.style.background = s.color;
+          row.append(dot, el("span", "", s.name), el("span", "val", `${n}/${possible[m]} Tage · ${pct(n, possible[m])}%`));
           tip.appendChild(row);
         }
         cross.setAttribute("x1", x(m));
@@ -592,10 +845,107 @@
         tip.style.left = `${Math.max(0, Math.min(left, W - w))}px`;
       });
     });
-    el.querySelector("svg").addEventListener("pointerleave", () => {
+    chart.querySelector("svg").addEventListener("pointerleave", () => {
       tip.hidden = true;
       cross.setAttribute("visibility", "hidden");
     });
+  }
+
+  // Serien aus aufsteigend sortierten Tagen bis heute. Die aktuelle Serie
+  // reißt erst ab, wenn gestern nichts abgehakt wurde.
+  function streaks(keys) {
+    let longest = 0, run = 0, prev = null;
+    for (const k of keys) {
+      const n = dayNum(k);
+      run = prev !== null && n === prev + 1 ? run + 1 : 1;
+      longest = Math.max(longest, run);
+      prev = n;
+    }
+    const current = prev !== null && prev >= dayNum(keyOf(today)) - 1 ? run : 0;
+    return { longest, current };
+  }
+
+  function renderAnalytics() {
+    const box = $("analytics");
+    const f = focusId && byId(focusId);
+    box.hidden = !f;
+    box.innerHTML = "";
+    if (!f) return;
+
+    const { year } = view;
+    const todayKey = keyOf(today);
+    const doneDays = (ids) => [...marks.keys()].filter(k => k <= todayKey && doneOn(k, ids)).sort();
+    const inYear = (keys) => keys.filter(k => k.startsWith(`${year}-`));
+    const ids = groupIds(f);
+    const color = safeColor(f.color);
+    const all = doneDays(ids);
+    const yearDone = inYear(all).length;
+    const possible = possibleDays(year).reduce((a, b) => a + b, 0);
+    const { current, longest } = streaks(all);
+    const since = keyOf(new Date(today.getFullYear(), today.getMonth(), today.getDate() - 30));
+    const last30 = all.filter(k => k > since).length;
+
+    box.appendChild(el("h2", "", `Analyse: ${f.name}`));
+
+    const stats = box.appendChild(el("div", "stats"));
+    const tile = (value, label) => {
+      const t = stats.appendChild(el("div", "stat"));
+      t.append(el("b", "", value), el("span", "", label));
+    };
+    tile(String(current), current === 1 ? "Tag aktuelle Serie" : "Tage aktuelle Serie");
+    tile(String(longest), longest === 1 ? "Tag längste Serie" : "Tage längste Serie");
+    tile(`${pct(yearDone, possible)}%`, `${year}: ${yearDone} von ${possible} Tagen`);
+    tile(`${pct(last30, 30)}%`, `letzte 30 Tage: ${last30}`);
+    tile(String(all.length), "Tage insgesamt");
+
+    // Jahresübersicht: eine Spalte pro Woche, Montag oben
+    box.appendChild(el("h3", "", `Jahresübersicht ${year}`));
+    const heat = box.appendChild(el("div", "heat"));
+    const first = new Date(year, 0, 1);
+    for (let i = 0; i < (first.getDay() + 6) % 7; i++) heat.appendChild(el("span", "pad"));
+    for (const d = new Date(first); d.getFullYear() === year; d.setDate(d.getDate() + 1)) {
+      const k = keyOf(d);
+      const c = el("span");
+      c.title = d.toLocaleDateString("de-DE");
+      if (doneOn(k, ids)) c.style.background = color;
+      else if (k > todayKey) c.className = "future";
+      heat.appendChild(c);
+    }
+
+    box.appendChild(el("h3", "", "Nach Wochentag (gesamt)"));
+    const counts = Array(7).fill(0);
+    for (const k of all) counts[(new Date(k + "T00:00").getDay() + 6) % 7]++;
+    const max = Math.max(1, ...counts);
+    const bars = box.appendChild(el("div", "weekbars"));
+    WEEKDAYS.forEach((name, i) => {
+      const col = bars.appendChild(el("div"));
+      const track = el("div", "track");
+      const bar = track.appendChild(el("div", "bar"));
+      bar.style.height = `${counts[i] / max * 100}%`;
+      bar.style.background = color;
+      col.append(el("small", "", counts[i]), track, el("span", "", name));
+    });
+
+    const subs = subsOf(f.id);
+    if (!subs.length) return;
+    box.appendChild(el("h3", "", `Unterkategorien ${year}`));
+    const table = box.appendChild(el("table", "subtable"));
+    table.innerHTML = `<thead><tr><th></th><th class="num">Tage</th><th class="num">Anteil</th><th class="num">längste Serie</th></tr></thead>`;
+    const body = table.appendChild(el("tbody"));
+    const row = (h, label) => {
+      const days = doneDays([h.id]);
+      const n = inYear(days).length;
+      const tr = body.appendChild(el("tr", h.hidden ? "hidden" : ""));
+      const name = tr.appendChild(el("td"));
+      name.append(colorDot(h), label);
+      tr.append(
+        el("td", "num", n),
+        el("td", "num", `${pct(n, yearDone)}%`),
+        el("td", "num", streaks(days).longest),
+      );
+    };
+    for (const s of subs) row(s, s.name);
+    if (inYear(doneDays([f.id])).length) row(f, "ohne Unterkategorie");
   }
 
   function render() {
@@ -605,11 +955,9 @@
 
   function changeMonth(delta) {
     const d = new Date(view.year, view.month + delta, 1);
-    const yearChanged = d.getFullYear() !== view.year;
     view.year = d.getFullYear();
     view.month = d.getMonth();
-    renderDays();
-    if (yearChanged) loadMarks(); // innerhalb eines Jahres sind die Punkte schon geladen
+    renderDays(); // alle Jahre sind schon geladen
   }
 
   // --- Anmeldung ---
@@ -625,6 +973,7 @@
     $("who").textContent = session.user.email;
     habits = [];
     marks = new Map();
+    focusId = editingId = null;
     await loadHabits();
     render();
     loadMarks();

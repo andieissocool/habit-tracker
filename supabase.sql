@@ -5,6 +5,8 @@ create table habits (
   user_id uuid not null default auth.uid() references auth.users on delete cascade,
   name text not null,
   color text not null,
+  hidden boolean not null default false,
+  parent_id uuid references habits on delete cascade,  -- gesetzt = Unterkategorie
   created_at timestamptz not null default now()
 );
 
@@ -33,3 +35,9 @@ create policy "eigene marks" on marks
     auth.uid() = user_id
     and exists (select 1 from habits h where h.id = habit_id and h.user_id = auth.uid())
   );
+
+-- Update für Datenbanken, die vor "Ausblenden & Unterkategorien" angelegt wurden.
+-- Bei einer bestehenden Datenbank nur diesen Abschnitt ausführen (mehrfach ausführen schadet nicht).
+alter table habits
+  add column if not exists hidden boolean not null default false,
+  add column if not exists parent_id uuid references habits on delete cascade;
